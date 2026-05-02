@@ -16,42 +16,23 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HERO_BANNER } from "@/lib/images";
 import { useColors } from "@/hooks/useColors";
+import { useLanguage } from "@/context/LanguageContext";
 
 const { width } = Dimensions.get("window");
-
-const slides = [
-  {
-    id: "1",
-    title: "Choose your meal!",
-    subtitle:
-      "Discover delicious meals from your favorite restaurant in just a few taps.",
-    image: HERO_BANNER,
-    bg: "#FF6B00",
-  },
-  {
-    id: "2",
-    title: "Get it delivered fast!",
-    subtitle:
-      "Order with ease and enjoy exclusive deals on your first order.",
-    image: HERO_BANNER,
-    bg: "#FF8C38",
-  },
-  {
-    id: "3",
-    title: "Track your order!",
-    subtitle:
-      "Follow your meal in real time, from the kitchen straight to your door.",
-    image: HERO_BANNER,
-    bg: "#FFA055",
-  },
-];
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatRef = useRef<FlatList>(null);
+
+  const slides = [
+    { id: "1", title: t("slide1Title"), subtitle: t("slide1Sub"), image: HERO_BANNER, bg: "#FF6B00" },
+    { id: "2", title: t("slide2Title"), subtitle: t("slide2Sub"), image: HERO_BANNER, bg: "#FF8C38" },
+    { id: "3", title: t("slide3Title"), subtitle: t("slide3Sub"), image: HERO_BANNER, bg: "#FFA055" },
+  ];
 
   async function finish() {
     await AsyncStorage.setItem("onboarding_done", "true");
@@ -67,10 +48,6 @@ export default function OnboardingScreen() {
     } else {
       finish();
     }
-  }
-
-  function skip() {
-    finish();
   }
 
   return (
@@ -116,9 +93,9 @@ export default function OnboardingScreen() {
         <View style={styles.btnRow}>
           <Pressable
             style={({ pressed }) => [styles.skipBtn, { opacity: pressed ? 0.6 : 1 }]}
-            onPress={skip}
+            onPress={finish}
           >
-            <Text style={[styles.skipText, { color: colors.mutedForeground }]}>Skip</Text>
+            <Text style={[styles.skipText, { color: colors.mutedForeground }]}>{t("skip")}</Text>
           </Pressable>
 
           <Pressable
@@ -129,7 +106,7 @@ export default function OnboardingScreen() {
             onPress={next}
           >
             <Text style={styles.nextText}>
-              {currentIndex === slides.length - 1 ? "Get Started" : "Next"}
+              {currentIndex === slides.length - 1 ? t("getStarted") : t("next")}
             </Text>
           </Pressable>
         </View>
@@ -141,78 +118,20 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  slide: {
-    flex: 1,
-  },
-  imageContainer: {
-    height: 360,
-    overflow: "hidden",
-  },
-  slideImage: {
-    width: "100%",
-    height: "100%",
-    opacity: 0.85,
-  },
-  imageOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.15)",
-  },
-  textContainer: {
-    paddingHorizontal: 28,
-    paddingTop: 36,
-    gap: 12,
-  },
-  title: {
-    fontSize: 28,
-    fontFamily: "Inter_700Bold",
-    lineHeight: 36,
-  },
-  subtitle: {
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 22,
-  },
-  footer: {
-    paddingHorizontal: 24,
-    gap: 24,
-  },
-  dots: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 6,
-  },
-  dot: {
-    height: 8,
-    borderRadius: 4,
-  },
-  btnRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  skipBtn: {
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-  },
-  skipText: {
-    fontSize: 15,
-    fontFamily: "Inter_500Medium",
-  },
-  nextBtn: {
-    flex: 1,
-    marginLeft: 16,
-    paddingVertical: 16,
-    borderRadius: 16,
-    alignItems: "center",
-  },
-  nextText: {
-    color: "#fff",
-    fontSize: 16,
-    fontFamily: "Inter_600SemiBold",
-  },
+  container: { flex: 1, backgroundColor: "#fff" },
+  slide: { flex: 1 },
+  imageContainer: { height: 360, overflow: "hidden" },
+  slideImage: { width: "100%", height: "100%", opacity: 0.85 },
+  imageOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.15)" },
+  textContainer: { paddingHorizontal: 28, paddingTop: 36, gap: 12 },
+  title: { fontSize: 28, fontFamily: "Inter_700Bold", lineHeight: 36 },
+  subtitle: { fontSize: 15, fontFamily: "Inter_400Regular", lineHeight: 22 },
+  footer: { paddingHorizontal: 24, gap: 24 },
+  dots: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6 },
+  dot: { height: 8, borderRadius: 4 },
+  btnRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  skipBtn: { paddingVertical: 14, paddingHorizontal: 20 },
+  skipText: { fontSize: 15, fontFamily: "Inter_500Medium" },
+  nextBtn: { flex: 1, marginLeft: 16, paddingVertical: 16, borderRadius: 16, alignItems: "center" },
+  nextText: { color: "#fff", fontSize: 16, fontFamily: "Inter_600SemiBold" },
 });

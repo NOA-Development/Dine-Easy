@@ -19,11 +19,13 @@ import { EmptyState } from "@/components/EmptyState";
 import { MenuItem, db_ops } from "@/lib/database";
 import { getFoodImage } from "@/lib/images";
 import { useColors } from "@/hooks/useColors";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function AdminScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [items, setItems] = useState<MenuItem[]>([]);
 
   const topInset = Platform.OS === "web" ? 67 : insets.top;
@@ -36,18 +38,16 @@ export default function AdminScreen() {
   );
 
   function toggleAvailability(id: number, current: number) {
-    const next = current === 1 ? false : true;
+    const next = current !== 1;
     db_ops.toggleItemAvailability(id, next);
-    setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, is_available: next ? 1 : 0 } : i))
-    );
+    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, is_available: next ? 1 : 0 } : i)));
   }
 
   function deleteItem(id: number) {
-    Alert.alert("Delete Item", "Are you sure you want to delete this menu item?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("deleteItem"), t("deleteConfirm"), [
+      { text: t("cancel"), style: "cancel" },
       {
-        text: "Delete",
+        text: t("delete"),
         style: "destructive",
         onPress: () => {
           db_ops.deleteMenuItem(id);
@@ -63,7 +63,7 @@ export default function AdminScreen() {
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
-        <Text style={[styles.title, { color: colors.foreground }]}>Manage Menu</Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>{t("manageMenuTitle")}</Text>
         <View style={{ width: 22 }} />
       </View>
 
@@ -72,7 +72,7 @@ export default function AdminScreen() {
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: bottomInset + 90 }}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<EmptyState icon="package" title="No menu items" subtitle="Add your first item below" />}
+        ListEmptyComponent={<EmptyState icon="package" title={t("noMenuItems")} subtitle={t("addFirstItem")} />}
         renderItem={({ item }) => (
           <View
             style={[
@@ -82,12 +82,8 @@ export default function AdminScreen() {
           >
             <Image source={getFoodImage(item.image_key)} style={styles.itemImg} contentFit="cover" />
             <View style={styles.itemInfo}>
-              <Text style={[styles.itemName, { color: colors.foreground }]} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <Text style={[styles.itemPrice, { color: colors.primary }]}>
-                ${item.price.toFixed(2)}
-              </Text>
+              <Text style={[styles.itemName, { color: colors.foreground }]} numberOfLines={1}>{item.name}</Text>
+              <Text style={[styles.itemPrice, { color: colors.primary }]}>${item.price.toFixed(2)}</Text>
               <View style={styles.itemActions}>
                 <Switch
                   value={item.is_available === 1}
@@ -116,7 +112,7 @@ export default function AdminScreen() {
           onPress={() => router.push("/admin/add-item")}
         >
           <Feather name="plus" size={22} color="#fff" />
-          <Text style={styles.fabText}>Add Item</Text>
+          <Text style={styles.fabText}>{t("addItem")}</Text>
         </Pressable>
       </View>
     </View>
@@ -125,41 +121,19 @@ export default function AdminScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 12 },
   title: { fontSize: 20, fontFamily: "Inter_700Bold" },
-  itemCard: {
-    flexDirection: "row",
-    borderRadius: 14,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
+  itemCard: { flexDirection: "row", borderRadius: 14, borderWidth: 1, overflow: "hidden" },
   itemImg: { width: 80, height: 80 },
   itemInfo: { flex: 1, padding: 12, justifyContent: "space-between" },
   itemName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   itemPrice: { fontSize: 13, fontFamily: "Inter_700Bold" },
   itemActions: { flexDirection: "row", alignItems: "center", gap: 12 },
   fab: {
-    position: "absolute",
-    right: 20,
-    borderRadius: 20,
-    shadowColor: "#FF6B00",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    position: "absolute", right: 20, borderRadius: 20,
+    shadowColor: "#FF6B00", shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3, shadowRadius: 8, elevation: 6,
   },
-  fabInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    gap: 8,
-  },
+  fabInner: { flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 20, gap: 8 },
   fabText: { color: "#fff", fontSize: 15, fontFamily: "Inter_600SemiBold" },
 });

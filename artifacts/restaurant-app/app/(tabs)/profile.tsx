@@ -3,7 +3,6 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -18,11 +17,14 @@ import { Feather } from "@expo/vector-icons";
 
 import { Order, db_ops } from "@/lib/database";
 import { useColors } from "@/hooks/useColors";
+import { useLanguage } from "@/context/LanguageContext";
+import type { Lang } from "@/lib/i18n";
 
 export default function ProfileScreen() {
   const colors = useColors();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t, lang, setLang } = useLanguage();
 
   const [name, setName] = useState("Abdullah");
   const [phone, setPhone] = useState("+1 555 000 0000");
@@ -58,12 +60,16 @@ export default function ProfileScreen() {
 
   function formatDate(dateStr: string) {
     try {
-      return new Date(dateStr).toLocaleDateString("en-US", {
-        month: "short", day: "numeric", year: "numeric",
-      });
+      const locale = lang === "ru" ? "ru-RU" : "en-US";
+      return new Date(dateStr).toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
     } catch {
       return dateStr;
     }
+  }
+
+  function switchLang(l: Lang) {
+    setLang(l);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
   return (
@@ -73,13 +79,13 @@ export default function ProfileScreen() {
       showsVerticalScrollIndicator={false}
     >
       <View style={[styles.header, { paddingTop: topInset + 12 }]}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Profile</Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>{t("profile")}</Text>
         <Pressable
           style={[styles.editBtn, { borderColor: colors.primary }]}
           onPress={() => editing ? saveProfile() : setEditing(true)}
         >
           <Text style={[styles.editText, { color: colors.primary }]}>
-            {editing ? "Save" : "Edit"}
+            {editing ? t("save") : t("edit")}
           </Text>
         </Pressable>
       </View>
@@ -95,33 +101,53 @@ export default function ProfileScreen() {
 
       {/* Info Card */}
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border, marginHorizontal: 16 }]}>
-        <ProfileField
-          icon="user"
-          label="Full Name"
-          value={name}
-          editing={editing}
-          onChangeText={setName}
-          colors={colors}
-        />
+        <ProfileField icon="user" label={t("fullName")} value={name} editing={editing} onChangeText={setName} colors={colors} />
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        <ProfileField
-          icon="phone"
-          label="Phone"
-          value={phone}
-          editing={editing}
-          onChangeText={setPhone}
-          colors={colors}
-          keyboardType="phone-pad"
-        />
+        <ProfileField icon="phone" label={t("phone")} value={phone} editing={editing} onChangeText={setPhone} colors={colors} keyboardType="phone-pad" />
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        <ProfileField
-          icon="map-pin"
-          label="Address"
-          value={address}
-          editing={editing}
-          onChangeText={setAddress}
-          colors={colors}
-        />
+        <ProfileField icon="map-pin" label={t("address")} value={address} editing={editing} onChangeText={setAddress} colors={colors} />
+      </View>
+
+      {/* Language switcher */}
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border, marginHorizontal: 16, marginTop: 12 }]}>
+        <View style={styles.settingRow}>
+          <View style={styles.settingLeft}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}>
+              <Feather name="globe" size={18} color={colors.primary} />
+            </View>
+            <Text style={[styles.settingLabel, { color: colors.foreground }]}>{t("language")}</Text>
+          </View>
+          <View style={styles.langBtns}>
+            <Pressable
+              style={[
+                styles.langBtn,
+                {
+                  backgroundColor: lang === "en" ? colors.primary : colors.muted,
+                  borderColor: lang === "en" ? colors.primary : colors.border,
+                },
+              ]}
+              onPress={() => switchLang("en")}
+            >
+              <Text style={[styles.langBtnText, { color: lang === "en" ? "#fff" : colors.mutedForeground }]}>
+                🇬🇧 EN
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[
+                styles.langBtn,
+                {
+                  backgroundColor: lang === "ru" ? colors.primary : colors.muted,
+                  borderColor: lang === "ru" ? colors.primary : colors.border,
+                },
+              ]}
+              onPress={() => switchLang("ru")}
+            >
+              <Text style={[styles.langBtnText, { color: lang === "ru" ? "#fff" : colors.mutedForeground }]}>
+                🇷🇺 RU
+              </Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
 
       {/* Admin Mode */}
@@ -131,7 +157,7 @@ export default function ProfileScreen() {
             <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}>
               <Feather name="settings" size={18} color={colors.primary} />
             </View>
-            <Text style={[styles.settingLabel, { color: colors.foreground }]}>Admin Mode</Text>
+            <Text style={[styles.settingLabel, { color: colors.foreground }]}>{t("adminMode")}</Text>
           </View>
           <Switch
             value={isAdmin}
@@ -151,7 +177,7 @@ export default function ProfileScreen() {
                 <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}>
                   <Feather name="package" size={18} color={colors.primary} />
                 </View>
-                <Text style={[styles.settingLabel, { color: colors.foreground }]}>Manage Menu</Text>
+                <Text style={[styles.settingLabel, { color: colors.foreground }]}>{t("manageMenu")}</Text>
               </View>
               <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
             </Pressable>
@@ -161,17 +187,14 @@ export default function ProfileScreen() {
 
       {/* Order History */}
       <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
-        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Order History</Text>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>{t("orderHistory")}</Text>
         {orders.length === 0 ? (
-          <Text style={[styles.noOrders, { color: colors.mutedForeground }]}>No orders yet.</Text>
+          <Text style={[styles.noOrders, { color: colors.mutedForeground }]}>{t("noOrders")}</Text>
         ) : (
           orders.map((order) => (
-            <View
-              key={order.id}
-              style={[styles.orderCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-            >
+            <View key={order.id} style={[styles.orderCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={styles.orderHeader}>
-                <Text style={[styles.orderId, { color: colors.foreground }]}>Order #{order.id}</Text>
+                <Text style={[styles.orderId, { color: colors.foreground }]}>{t("orderNum")}{order.id}</Text>
                 <View style={[styles.statusBadge, { backgroundColor: colors.secondary }]}>
                   <Text style={[styles.statusText, { color: colors.primary }]}>{order.status}</Text>
                 </View>
@@ -189,21 +212,11 @@ export default function ProfileScreen() {
 }
 
 function ProfileField({
-  icon,
-  label,
-  value,
-  editing,
-  onChangeText,
-  colors,
-  keyboardType,
+  icon, label, value, editing, onChangeText, colors, keyboardType,
 }: {
   icon: keyof typeof Feather.glyphMap;
-  label: string;
-  value: string;
-  editing: boolean;
-  onChangeText: (t: string) => void;
-  colors: any;
-  keyboardType?: any;
+  label: string; value: string; editing: boolean;
+  onChangeText: (t: string) => void; colors: any; keyboardType?: any;
 }) {
   return (
     <View style={styles.fieldRow}>
@@ -229,69 +242,32 @@ function ProfileField({
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingBottom: 12 },
   title: { fontSize: 24, fontFamily: "Inter_700Bold" },
   editBtn: { borderWidth: 1.5, paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 },
   editText: { fontFamily: "Inter_600SemiBold", fontSize: 13 },
   avatarSection: { alignItems: "center", paddingVertical: 24, gap: 6 },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  avatar: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center" },
   avatarInitial: { color: "#fff", fontSize: 28, fontFamily: "Inter_700Bold" },
   avatarName: { fontSize: 20, fontFamily: "Inter_700Bold" },
   avatarSub: { fontSize: 14, fontFamily: "Inter_400Regular" },
   card: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
   divider: { height: 1 },
   fieldRow: { flexDirection: "row", alignItems: "center", padding: 14, gap: 12 },
-  fieldIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  fieldIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   fieldLabel: { fontSize: 11, fontFamily: "Inter_400Regular", marginBottom: 2 },
   fieldValue: { fontSize: 14, fontFamily: "Inter_500Medium" },
-  fieldInput: {
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
-    borderBottomWidth: 1,
-    paddingVertical: 2,
-  },
-  settingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 14,
-  },
+  fieldInput: { fontSize: 14, fontFamily: "Inter_500Medium", borderBottomWidth: 1, paddingVertical: 2 },
+  settingRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 14 },
   settingLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  settingIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  settingIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   settingLabel: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  langBtns: { flexDirection: "row", gap: 8 },
+  langBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5 },
+  langBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold", marginBottom: 12 },
   noOrders: { fontSize: 14, fontFamily: "Inter_400Regular" },
-  orderCard: {
-    borderRadius: 14,
-    borderWidth: 1,
-    padding: 14,
-    marginBottom: 10,
-    gap: 8,
-  },
+  orderCard: { borderRadius: 14, borderWidth: 1, padding: 14, marginBottom: 10, gap: 8 },
   orderHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   orderId: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },

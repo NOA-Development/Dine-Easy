@@ -17,6 +17,7 @@ import { Feather } from "@expo/vector-icons";
 import { QuantitySelector } from "@/components/QuantitySelector";
 import { EmptyState } from "@/components/EmptyState";
 import { useCart } from "@/context/CartContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { getFoodImage } from "@/lib/images";
 import { useColors } from "@/hooks/useColors";
 
@@ -29,6 +30,7 @@ export default function CartScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { items, subtotal, updateQuantity, removeItem, totalItems } = useCart();
+  const { t } = useLanguage();
   const [promo, setPromo] = useState("");
   const [promoApplied, setPromoApplied] = useState(false);
 
@@ -50,20 +52,16 @@ export default function CartScreen() {
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: topInset + 12 }]}>
-        <Text style={[styles.title, { color: colors.foreground }]}>My Cart</Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>{t("myCart")}</Text>
         {totalItems > 0 && (
           <View style={[styles.badge, { backgroundColor: colors.primary }]}>
-            <Text style={styles.badgeText}>{totalItems} items</Text>
+            <Text style={styles.badgeText}>{totalItems} {totalItems === 1 ? t("item") : t("items")}</Text>
           </View>
         )}
       </View>
 
       {items.length === 0 ? (
-        <EmptyState
-          icon="shopping-cart"
-          title="Your cart is empty"
-          subtitle="Add some delicious meals to get started!"
-        />
+        <EmptyState icon="shopping-cart" title={t("cartEmpty")} subtitle={t("cartEmptySub")} />
       ) : (
         <>
           <FlatList
@@ -72,9 +70,7 @@ export default function CartScreen() {
             contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 8 }}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
-              <View
-                style={[styles.cartItem, { backgroundColor: colors.card, borderColor: colors.border }]}
-              >
+              <View style={[styles.cartItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
                 <Image
                   source={getFoodImage(item.menuItem.image_key)}
                   style={styles.cartImg}
@@ -108,7 +104,7 @@ export default function CartScreen() {
           <View style={[styles.promoRow, { paddingHorizontal: 16 }]}>
             <TextInput
               style={[styles.promoInput, { borderColor: colors.border, color: colors.foreground, backgroundColor: colors.muted }]}
-              placeholder="Promo code (WELCOME10)"
+              placeholder={t("promoPlaceholder")}
               placeholderTextColor={colors.mutedForeground}
               value={promo}
               onChangeText={setPromo}
@@ -120,19 +116,19 @@ export default function CartScreen() {
               onPress={applyPromo}
               disabled={promoApplied}
             >
-              <Text style={styles.promoBtnText}>{promoApplied ? "Applied!" : "Apply"}</Text>
+              <Text style={styles.promoBtnText}>{promoApplied ? t("applied") : t("apply")}</Text>
             </Pressable>
           </View>
 
           {/* Summary */}
           <View style={[styles.summary, { marginHorizontal: 16, backgroundColor: colors.card, borderColor: colors.border }]}>
-            <SummaryRow label="Subtotal" value={`$${subtotal.toFixed(2)}`} colors={colors} />
+            <SummaryRow label={t("subtotal")} value={`$${subtotal.toFixed(2)}`} colors={colors} />
             {promoApplied && (
-              <SummaryRow label="Discount (10%)" value={`-$${discount.toFixed(2)}`} colors={colors} isDiscount />
+              <SummaryRow label={t("discount")} value={`-$${discount.toFixed(2)}`} colors={colors} isDiscount />
             )}
-            <SummaryRow label="Delivery" value={`$${DELIVERY_FEE.toFixed(2)}`} colors={colors} />
+            <SummaryRow label={t("delivery")} value={`$${DELIVERY_FEE.toFixed(2)}`} colors={colors} />
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            <SummaryRow label="Total" value={`$${total.toFixed(2)}`} colors={colors} isBold />
+            <SummaryRow label={t("total")} value={`$${total.toFixed(2)}`} colors={colors} isBold />
           </View>
 
           <View style={[styles.checkoutWrap, { paddingBottom: bottomInset + 16 }]}>
@@ -143,7 +139,7 @@ export default function CartScreen() {
               ]}
               onPress={() => router.push({ pathname: "/checkout", params: { total: total.toFixed(2) } })}
             >
-              <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+              <Text style={styles.checkoutText}>{t("proceedCheckout")}</Text>
               <Text style={styles.checkoutTotal}>${total.toFixed(2)}</Text>
             </Pressable>
           </View>
@@ -154,17 +150,9 @@ export default function CartScreen() {
 }
 
 function SummaryRow({
-  label,
-  value,
-  colors,
-  isBold,
-  isDiscount,
+  label, value, colors, isBold, isDiscount,
 }: {
-  label: string;
-  value: string;
-  colors: any;
-  isBold?: boolean;
-  isDiscount?: boolean;
+  label: string; value: string; colors: any; isBold?: boolean; isDiscount?: boolean;
 }) {
   return (
     <View style={styles.summaryRow}>
@@ -175,7 +163,7 @@ function SummaryRow({
         style={[
           styles.summaryValue,
           {
-            color: isDiscount ? "#22C55E" : isBold ? colors.foreground : colors.foreground,
+            color: isDiscount ? "#22C55E" : colors.foreground,
             fontFamily: isBold ? "Inter_700Bold" : "Inter_500Medium",
             fontSize: isBold ? 18 : 14,
           },
@@ -189,22 +177,11 @@ function SummaryRow({
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 10,
-  },
+  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingBottom: 12, gap: 10 },
   title: { fontSize: 24, fontFamily: "Inter_700Bold" },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
   badgeText: { color: "#fff", fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  cartItem: {
-    flexDirection: "row",
-    borderRadius: 16,
-    overflow: "hidden",
-    borderWidth: 1,
-  },
+  cartItem: { flexDirection: "row", borderRadius: 16, overflow: "hidden", borderWidth: 1 },
   cartImg: { width: 90, height: 90 },
   cartInfo: { flex: 1, padding: 12, justifyContent: "space-between" },
   cartName: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
@@ -212,40 +189,21 @@ const styles = StyleSheet.create({
   cartBottom: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   promoRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
   promoInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
+    flex: 1, borderWidth: 1, borderRadius: 12,
+    paddingHorizontal: 14, paddingVertical: 10,
+    fontSize: 14, fontFamily: "Inter_400Regular",
   },
-  promoBtn: {
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  promoBtn: { paddingHorizontal: 16, borderRadius: 12, justifyContent: "center", alignItems: "center" },
   promoBtnText: { color: "#fff", fontFamily: "Inter_600SemiBold", fontSize: 14 },
-  summary: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    gap: 10,
-    marginBottom: 16,
-  },
+  summary: { borderRadius: 16, padding: 16, borderWidth: 1, gap: 10, marginBottom: 16 },
   summaryRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   summaryLabel: { fontSize: 14 },
   summaryValue: {},
   divider: { height: 1, marginVertical: 4 },
   checkoutWrap: { paddingHorizontal: 16 },
   checkoutBtn: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-    borderRadius: 18,
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    paddingVertical: 18, paddingHorizontal: 24, borderRadius: 18,
   },
   checkoutText: { color: "#fff", fontSize: 16, fontFamily: "Inter_600SemiBold" },
   checkoutTotal: { color: "#fff", fontSize: 16, fontFamily: "Inter_700Bold" },

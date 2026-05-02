@@ -15,10 +15,12 @@ import { SearchBar } from "@/components/SearchBar";
 import { EmptyState } from "@/components/EmptyState";
 import { Category, MenuItem, db_ops } from "@/lib/database";
 import { useColors } from "@/hooks/useColors";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function CategoriesScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   const [categories, setCategories] = useState<Category[]>([]);
   const [allItems, setAllItems] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
@@ -37,9 +39,7 @@ export default function CategoriesScreen() {
     if (search.trim()) {
       const q = search.toLowerCase();
       items = items.filter(
-        (i) =>
-          i.name.toLowerCase().includes(q) ||
-          i.description.toLowerCase().includes(q)
+        (i) => i.name.toLowerCase().includes(q) || i.description.toLowerCase().includes(q)
       );
     }
     return items;
@@ -47,23 +47,23 @@ export default function CategoriesScreen() {
 
   const topInset = Platform.OS === "web" ? 67 : insets.top;
 
+  const allChip: Category = { id: -1, name: t("allCategory"), icon: "🍽️" };
+
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <View style={[styles.topBar, { paddingTop: topInset + 12 }]}>
-        <Text style={[styles.title, { color: colors.foreground }]}>Categories</Text>
-        <SearchBar value={search} onChangeText={setSearch} placeholder="Search menu..." />
+        <Text style={[styles.title, { color: colors.foreground }]}>{t("categories")}</Text>
+        <SearchBar value={search} onChangeText={setSearch} placeholder={t("searchMenu")} />
         <FlatList
           horizontal
-          data={[{ id: -1, name: "All", icon: "🍽️" }, ...categories]}
+          data={[allChip, ...categories]}
           keyExtractor={(c) => c.id.toString()}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingVertical: 4 }}
           renderItem={({ item }) => (
             <CategoryChip
               category={item}
-              selected={
-                item.id === -1 ? selectedCategory === null : selectedCategory === item.id
-              }
+              selected={item.id === -1 ? selectedCategory === null : selectedCategory === item.id}
               onSelect={() =>
                 setSelectedCategory(item.id === -1 ? null : selectedCategory === item.id ? null : item.id)
               }
@@ -73,7 +73,7 @@ export default function CategoriesScreen() {
       </View>
 
       {filteredItems.length === 0 ? (
-        <EmptyState icon="coffee" title="No items found" subtitle="Try selecting a different category" />
+        <EmptyState icon="coffee" title={t("noItemsFound")} subtitle={t("tryDifferentCat")} />
       ) : (
         <FlatList
           data={filteredItems}
@@ -95,16 +95,9 @@ export default function CategoriesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  topBar: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    gap: 12,
-  },
+  topBar: { paddingHorizontal: 16, paddingBottom: 12, gap: 12 },
   title: { fontSize: 24, fontFamily: "Inter_700Bold" },
-  listContent: {
-    paddingHorizontal: 12,
-    paddingBottom: 100,
-  },
+  listContent: { paddingHorizontal: 12, paddingBottom: 100 },
   row: { gap: 12, marginBottom: 12 },
   col: { flex: 1 },
 });

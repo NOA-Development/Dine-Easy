@@ -9,6 +9,7 @@ import { Platform, StyleSheet, Text, View, useColorScheme } from "react-native";
 
 import { useColors } from "@/hooks/useColors";
 import { useCart } from "@/context/CartContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 function CartTabIcon({ color, isIOS }: { color: string; isIOS: boolean }) {
   const { totalItems } = useCart();
@@ -20,7 +21,7 @@ function CartTabIcon({ color, isIOS }: { color: string; isIOS: boolean }) {
         <Feather name="shopping-cart" size={22} color={color} />
       )}
       {totalItems > 0 && (
-        <View style={[styles.badge]}>
+        <View style={styles.badge}>
           <Text style={styles.badgeText}>{totalItems > 9 ? "9+" : totalItems}</Text>
         </View>
       )}
@@ -29,23 +30,24 @@ function CartTabIcon({ color, isIOS }: { color: string; isIOS: boolean }) {
 }
 
 function NativeTabLayout() {
+  const { t } = useLanguage();
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: "house", selected: "house.fill" }} />
-        <Label>Home</Label>
+        <Label>{t("tabHome")}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="categories">
         <Icon sf={{ default: "fork.knife", selected: "fork.knife" }} />
-        <Label>Menu</Label>
+        <Label>{t("tabMenu")}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="cart">
         <Icon sf={{ default: "cart", selected: "cart.fill" }} />
-        <Label>Cart</Label>
+        <Label>{t("tabCart")}</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: "person", selected: "person.fill" }} />
-        <Label>Profile</Label>
+        <Label>{t("tabProfile")}</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -57,6 +59,7 @@ function ClassicTabLayout() {
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
+  const { t } = useLanguage();
 
   return (
     <Tabs
@@ -79,11 +82,7 @@ function ClassicTabLayout() {
         },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
+            <BlurView intensity={100} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
           ) : isWeb ? (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background }]} />
           ) : null,
@@ -92,44 +91,32 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: t("tabHome"),
           tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="house" tintColor={color} size={24} />
-            ) : (
-              <Feather name="home" size={22} color={color} />
-            ),
+            isIOS ? <SymbolView name="house" tintColor={color} size={24} /> : <Feather name="home" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="categories"
         options={{
-          title: "Menu",
+          title: t("tabMenu"),
           tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="fork.knife" tintColor={color} size={24} />
-            ) : (
-              <Feather name="grid" size={22} color={color} />
-            ),
+            isIOS ? <SymbolView name="fork.knife" tintColor={color} size={24} /> : <Feather name="grid" size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="cart"
         options={{
-          title: "Cart",
+          title: t("tabCart"),
           tabBarIcon: ({ color }) => <CartTabIcon color={color} isIOS={isIOS} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: t("tabProfile"),
           tabBarIcon: ({ color }) =>
-            isIOS ? (
-              <SymbolView name="person" tintColor={color} size={24} />
-            ) : (
-              <Feather name="user" size={22} color={color} />
-            ),
+            isIOS ? <SymbolView name="person" tintColor={color} size={24} /> : <Feather name="user" size={22} color={color} />,
         }}
       />
     </Tabs>
@@ -145,20 +132,9 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   badge: {
-    position: "absolute",
-    top: -4,
-    right: -8,
-    backgroundColor: "#FF6B00",
-    minWidth: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 3,
+    position: "absolute", top: -4, right: -8,
+    backgroundColor: "#FF6B00", minWidth: 16, height: 16,
+    borderRadius: 8, alignItems: "center", justifyContent: "center", paddingHorizontal: 3,
   },
-  badgeText: {
-    color: "#fff",
-    fontSize: 9,
-    fontFamily: "Inter_700Bold",
-  },
+  badgeText: { color: "#fff", fontSize: 9, fontFamily: "Inter_700Bold" },
 });

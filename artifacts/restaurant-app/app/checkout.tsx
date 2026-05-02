@@ -5,7 +5,6 @@ import React, { useEffect, useState } from "react";
 import {
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -16,11 +15,11 @@ import { Feather } from "@expo/vector-icons";
 import { KeyboardAwareScrollViewCompat } from "react-native-keyboard-controller";
 
 import { useCart } from "@/context/CartContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { db_ops } from "@/lib/database";
 import { useColors } from "@/hooks/useColors";
 
 const DELIVERY_FEE = 3.99;
-
 type PaymentMethod = "cash" | "card";
 
 export default function CheckoutScreen() {
@@ -29,6 +28,7 @@ export default function CheckoutScreen() {
   const insets = useSafeAreaInsets();
   const { total: totalParam } = useLocalSearchParams<{ total: string }>();
   const { items, subtotal, clearCart } = useCart();
+  const { t } = useLanguage();
 
   const [name, setName] = useState("Abdullah");
   const [phone, setPhone] = useState("+1 555 000 0000");
@@ -52,21 +52,8 @@ export default function CheckoutScreen() {
     setLoading(true);
     try {
       const orderId = db_ops.createOrder(
-        {
-          status: "confirmed",
-          subtotal,
-          delivery_fee: DELIVERY_FEE,
-          total,
-          customer_name: name,
-          customer_phone: phone,
-          delivery_address: address,
-          notes,
-        },
-        items.map((i) => ({
-          item_name: i.menuItem.name,
-          item_price: i.menuItem.price,
-          quantity: i.quantity,
-        }))
+        { status: "confirmed", subtotal, delivery_fee: DELIVERY_FEE, total, customer_name: name, customer_phone: phone, delivery_address: address, notes },
+        items.map((i) => ({ item_name: i.menuItem.name, item_price: i.menuItem.price, quantity: i.quantity }))
       );
       clearCart();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -82,7 +69,7 @@ export default function CheckoutScreen() {
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
-        <Text style={[styles.title, { color: colors.foreground }]}>Checkout</Text>
+        <Text style={[styles.title, { color: colors.foreground }]}>{t("checkout")}</Text>
         <View style={{ width: 22 }} />
       </View>
 
@@ -92,34 +79,19 @@ export default function CheckoutScreen() {
         contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: bottomInset + 100 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Shipping */}
-        <SectionCard title="Shipping Address" icon="map-pin" colors={colors}>
-          <Field label="Full Name" value={name} onChangeText={setName} colors={colors} />
-          <Field label="Phone" value={phone} onChangeText={setPhone} colors={colors} keyboardType="phone-pad" />
-          <Field label="Address" value={address} onChangeText={setAddress} colors={colors} />
-          <Field label="Notes (optional)" value={notes} onChangeText={setNotes} colors={colors} multiline />
+        <SectionCard title={t("shippingAddress")} icon="map-pin" colors={colors}>
+          <Field label={t("fullName")} value={name} onChangeText={setName} colors={colors} />
+          <Field label={t("phone")} value={phone} onChangeText={setPhone} colors={colors} keyboardType="phone-pad" />
+          <Field label={t("address")} value={address} onChangeText={setAddress} colors={colors} />
+          <Field label={t("notesOptional")} value={notes} onChangeText={setNotes} colors={colors} multiline />
         </SectionCard>
 
-        {/* Payment */}
-        <SectionCard title="Payment Method" icon="credit-card" colors={colors}>
-          <PayBtn
-            label="Cash on Delivery"
-            icon="dollar-sign"
-            selected={paymentMethod === "cash"}
-            onPress={() => setPaymentMethod("cash")}
-            colors={colors}
-          />
-          <PayBtn
-            label="Credit / Debit Card"
-            icon="credit-card"
-            selected={paymentMethod === "card"}
-            onPress={() => setPaymentMethod("card")}
-            colors={colors}
-          />
+        <SectionCard title={t("paymentMethod")} icon="credit-card" colors={colors}>
+          <PayBtn label={t("cashOnDelivery")} icon="dollar-sign" selected={paymentMethod === "cash"} onPress={() => setPaymentMethod("cash")} colors={colors} />
+          <PayBtn label={t("creditCard")} icon="credit-card" selected={paymentMethod === "card"} onPress={() => setPaymentMethod("card")} colors={colors} />
         </SectionCard>
 
-        {/* Summary */}
-        <SectionCard title="Order Summary" icon="list" colors={colors}>
+        <SectionCard title={t("orderSummary")} icon="list" colors={colors}>
           {items.map((item) => (
             <View key={item.menuItem.id} style={styles.summaryItem}>
               <Text style={[styles.summaryName, { color: colors.foreground }]} numberOfLines={1}>
@@ -132,11 +104,11 @@ export default function CheckoutScreen() {
           ))}
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <View style={styles.summaryItem}>
-            <Text style={[styles.summaryName, { color: colors.mutedForeground }]}>Delivery</Text>
+            <Text style={[styles.summaryName, { color: colors.mutedForeground }]}>{t("delivery")}</Text>
             <Text style={[styles.summaryPrice, { color: colors.mutedForeground }]}>${DELIVERY_FEE.toFixed(2)}</Text>
           </View>
           <View style={styles.summaryItem}>
-            <Text style={[styles.totalLabel, { color: colors.foreground }]}>Total</Text>
+            <Text style={[styles.totalLabel, { color: colors.foreground }]}>{t("total")}</Text>
             <Text style={[styles.totalValue, { color: colors.primary }]}>${total.toFixed(2)}</Text>
           </View>
         </SectionCard>
@@ -151,7 +123,7 @@ export default function CheckoutScreen() {
           onPress={placeOrder}
           disabled={loading}
         >
-          <Text style={styles.confirmText}>{loading ? "Placing Order..." : "Confirmation"}</Text>
+          <Text style={styles.confirmText}>{loading ? t("placingOrder") : t("confirmation")}</Text>
         </Pressable>
       </View>
     </View>
@@ -171,9 +143,7 @@ function SectionCard({ title, icon, children, colors }: { title: string; icon: a
   );
 }
 
-function Field({
-  label, value, onChangeText, colors, keyboardType, multiline,
-}: {
+function Field({ label, value, onChangeText, colors, keyboardType, multiline }: {
   label: string; value: string; onChangeText: (t: string) => void; colors: any; keyboardType?: any; multiline?: boolean;
 }) {
   return (
@@ -210,13 +180,7 @@ function PayBtn({ label, icon, selected, onPress, colors }: any) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingBottom: 8 },
   title: { fontSize: 18, fontFamily: "Inter_700Bold" },
   card: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
   cardHeader: { flexDirection: "row", alignItems: "center", gap: 8, padding: 14 },
@@ -224,23 +188,8 @@ const styles = StyleSheet.create({
   cardDivider: { height: 1 },
   fieldWrap: { padding: 10, paddingHorizontal: 14, gap: 6 },
   fieldLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  fieldInput: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-  },
-  payBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 14,
-    gap: 12,
-    borderWidth: 1.5,
-    margin: 10,
-    borderRadius: 12,
-  },
+  fieldInput: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, fontFamily: "Inter_400Regular" },
+  payBtn: { flexDirection: "row", alignItems: "center", padding: 14, gap: 12, borderWidth: 1.5, margin: 10, borderRadius: 12 },
   payIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   payLabel: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, alignItems: "center", justifyContent: "center" },
@@ -252,10 +201,6 @@ const styles = StyleSheet.create({
   totalLabel: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   totalValue: { fontSize: 18, fontFamily: "Inter_700Bold" },
   footer: { paddingHorizontal: 16 },
-  confirmBtn: {
-    paddingVertical: 18,
-    borderRadius: 18,
-    alignItems: "center",
-  },
+  confirmBtn: { paddingVertical: 18, borderRadius: 18, alignItems: "center" },
   confirmText: { color: "#fff", fontSize: 16, fontFamily: "Inter_600SemiBold" },
 });
