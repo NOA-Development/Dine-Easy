@@ -18,6 +18,7 @@ import { Feather } from "@expo/vector-icons";
 import { Order, db_ops } from "@/lib/database";
 import { useColors } from "@/hooks/useColors";
 import { useLanguage } from "@/context/LanguageContext";
+import { useAdmin } from "@/context/AdminContext";
 import type { Lang } from "@/lib/i18n";
 
 export default function ProfileScreen() {
@@ -25,11 +26,11 @@ export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t, lang, setLang } = useLanguage();
+  const { isAdmin, setIsAdmin } = useAdmin();
 
   const [name, setName] = useState("Abdullah");
   const [phone, setPhone] = useState("+1 555 000 0000");
   const [address, setAddress] = useState("123 Food Street, Flavor City");
-  const [isAdmin, setIsAdmin] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [editing, setEditing] = useState(false);
 
@@ -40,7 +41,6 @@ export default function ProfileScreen() {
     AsyncStorage.getItem("user_name").then((n) => { if (n) setName(n); });
     AsyncStorage.getItem("user_phone").then((p) => { if (p) setPhone(p); });
     AsyncStorage.getItem("user_address").then((a) => { if (a) setAddress(a); });
-    AsyncStorage.getItem("is_admin").then((v) => { setIsAdmin(v === "true"); });
     setOrders(db_ops.getOrders());
   }, []);
 
@@ -53,8 +53,7 @@ export default function ProfileScreen() {
   }
 
   async function toggleAdmin(val: boolean) {
-    setIsAdmin(val);
-    await AsyncStorage.setItem("is_admin", val ? "true" : "false");
+    await setIsAdmin(val);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   }
 
@@ -97,6 +96,12 @@ export default function ProfileScreen() {
         </View>
         <Text style={[styles.avatarName, { color: colors.foreground }]}>{name}</Text>
         <Text style={[styles.avatarSub, { color: colors.mutedForeground }]}>{phone}</Text>
+        {isAdmin && (
+          <View style={[styles.adminChip, { backgroundColor: colors.primary }]}>
+            <Feather name="settings" size={12} color="#fff" />
+            <Text style={styles.adminChipText}>Admin</Text>
+          </View>
+        )}
       </View>
 
       {/* Info Card */}
@@ -121,43 +126,40 @@ export default function ProfileScreen() {
             <Pressable
               style={[
                 styles.langBtn,
-                {
-                  backgroundColor: lang === "en" ? colors.primary : colors.muted,
-                  borderColor: lang === "en" ? colors.primary : colors.border,
-                },
+                { backgroundColor: lang === "en" ? colors.primary : colors.muted, borderColor: lang === "en" ? colors.primary : colors.border },
               ]}
               onPress={() => switchLang("en")}
             >
-              <Text style={[styles.langBtnText, { color: lang === "en" ? "#fff" : colors.mutedForeground }]}>
-                🇬🇧 EN
-              </Text>
+              <Text style={[styles.langBtnText, { color: lang === "en" ? "#fff" : colors.mutedForeground }]}>🇬🇧 EN</Text>
             </Pressable>
             <Pressable
               style={[
                 styles.langBtn,
-                {
-                  backgroundColor: lang === "ru" ? colors.primary : colors.muted,
-                  borderColor: lang === "ru" ? colors.primary : colors.border,
-                },
+                { backgroundColor: lang === "ru" ? colors.primary : colors.muted, borderColor: lang === "ru" ? colors.primary : colors.border },
               ]}
               onPress={() => switchLang("ru")}
             >
-              <Text style={[styles.langBtnText, { color: lang === "ru" ? "#fff" : colors.mutedForeground }]}>
-                🇷🇺 RU
-              </Text>
+              <Text style={[styles.langBtnText, { color: lang === "ru" ? "#fff" : colors.mutedForeground }]}>🇷🇺 RU</Text>
             </Pressable>
           </View>
         </View>
       </View>
 
-      {/* Admin Mode */}
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border, marginHorizontal: 16, marginTop: 12 }]}>
+      {/* Admin Mode toggle */}
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: isAdmin ? colors.primary + "55" : colors.border, marginHorizontal: 16, marginTop: 12 }]}>
         <View style={styles.settingRow}>
           <View style={styles.settingLeft}>
-            <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}>
-              <Feather name="settings" size={18} color={colors.primary} />
+            <View style={[styles.settingIcon, { backgroundColor: isAdmin ? colors.primary + "22" : colors.secondary }]}>
+              <Feather name="settings" size={18} color={isAdmin ? colors.primary : colors.mutedForeground} />
             </View>
-            <Text style={[styles.settingLabel, { color: colors.foreground }]}>{t("adminMode")}</Text>
+            <View>
+              <Text style={[styles.settingLabel, { color: colors.foreground }]}>{t("adminMode")}</Text>
+              {isAdmin && (
+                <Text style={[styles.settingSub, { color: colors.primary }]}>
+                  {t("tabMenu")} tab is now your control panel
+                </Text>
+              )}
+            </View>
           </View>
           <Switch
             value={isAdmin}
@@ -166,23 +168,6 @@ export default function ProfileScreen() {
             thumbColor="#fff"
           />
         </View>
-        {isAdmin && (
-          <>
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            <Pressable
-              style={({ pressed }) => [styles.settingRow, { opacity: pressed ? 0.7 : 1 }]}
-              onPress={() => router.push("/admin/")}
-            >
-              <View style={styles.settingLeft}>
-                <View style={[styles.settingIcon, { backgroundColor: colors.secondary }]}>
-                  <Feather name="package" size={18} color={colors.primary} />
-                </View>
-                <Text style={[styles.settingLabel, { color: colors.foreground }]}>{t("manageMenu")}</Text>
-              </View>
-              <Feather name="chevron-right" size={18} color={colors.mutedForeground} />
-            </Pressable>
-          </>
-        )}
       </View>
 
       {/* Order History */}
@@ -251,6 +236,8 @@ const styles = StyleSheet.create({
   avatarInitial: { color: "#fff", fontSize: 28, fontFamily: "Inter_700Bold" },
   avatarName: { fontSize: 20, fontFamily: "Inter_700Bold" },
   avatarSub: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  adminChip: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, marginTop: 4 },
+  adminChipText: { color: "#fff", fontSize: 12, fontFamily: "Inter_600SemiBold" },
   card: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
   divider: { height: 1 },
   fieldRow: { flexDirection: "row", alignItems: "center", padding: 14, gap: 12 },
@@ -262,6 +249,7 @@ const styles = StyleSheet.create({
   settingLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
   settingIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   settingLabel: { fontSize: 14, fontFamily: "Inter_500Medium" },
+  settingSub: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
   langBtns: { flexDirection: "row", gap: 8 },
   langBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5 },
   langBtnText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },

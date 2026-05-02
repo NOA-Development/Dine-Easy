@@ -17,6 +17,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Platform } from "react-native";
 import { CartProvider } from "@/context/CartContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { AdminProvider } from "@/context/AdminContext";
 import { initDatabase } from "@/lib/database";
 
 SplashScreen.preventAutoHideAsync();
@@ -61,15 +62,17 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <LanguageProvider>
-            <CartProvider>
-              <GestureHandlerRootView>
-                <KeyboardProvider>
-                  <RootLayoutNav />
-                </KeyboardProvider>
-              </GestureHandlerRootView>
-            </CartProvider>
-          </LanguageProvider>
+          <AdminProvider>
+            <LanguageProvider>
+              <CartProvider>
+                <GestureHandlerRootView>
+                  <KeyboardProvider>
+                    <RootLayoutNav />
+                  </KeyboardProvider>
+                </GestureHandlerRootView>
+              </CartProvider>
+            </LanguageProvider>
+          </AdminProvider>
         </QueryClientProvider>
       </ErrorBoundary>
     </SafeAreaProvider>

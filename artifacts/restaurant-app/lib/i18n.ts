@@ -123,6 +123,13 @@ const translations = {
     placeholderName: "e.g. Jumbo Burger",
     placeholderDesc: "Short description...",
     placeholderPrep: "20-30 min",
+
+    // Admin inline
+    available: "Available",
+    unavailable: "Unavailable",
+    addNewItem: "Add Item",
+    adminBanner: "Admin Mode — tap any item to edit",
+    popular: "Popular",
   },
 
   ru: {
@@ -247,6 +254,13 @@ const translations = {
     placeholderName: "напр. Джамбо Бургер",
     placeholderDesc: "Краткое описание...",
     placeholderPrep: "20-30 мин",
+
+    // Admin inline
+    available: "Доступно",
+    unavailable: "Недоступно",
+    addNewItem: "Добавить",
+    adminBanner: "Режим администратора — нажми на позицию для редактирования",
+    popular: "Популярное",
   },
 } as const;
 
