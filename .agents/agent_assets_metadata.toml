@@ -1,0 +1,50 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "QxVPt199SRCO1ygYWOzMq"
+uri = "file://artifacts/restaurant-app/assets/images/icon.png"
+type = "image"
+title = "restaurant app icon"
+
+[[generated]]
+id = "CbjYEMG0bX-d3NS55kV_i"
+uri = "file://artifacts/restaurant-app/assets/images/burger.png"
+type = "image"
+title = "burger food photo"
+
+[[generated]]
+id = "vouUAL5FmvuVwjWGjqAZQ"
+uri = "file://artifacts/restaurant-app/assets/images/pizza.png"
+type = "image"
+title = "pizza food photo"
+
+[[generated]]
+id = "J99cqbh8ojFMBRQz-7gZw"
+uri = "file://artifacts/restaurant-app/assets/images/chicken.png"
+type = "image"
+title = "chicken food photo"
+
+[[generated]]
+id = "3l9myuMuodgXmRI3w2ClI"
+uri = "file://artifacts/restaurant-app/assets/images/salad.png"
+type = "image"
+title = "salad food photo"
+
+[[generated]]
+id = "zRwVZg2B0CCr0JqEgHQ_o"
+uri = "file://artifacts/restaurant-app/assets/images/hero-banner.png"
+type = "image"
+title = "restaurant hero banner"
+
+[[generated]]
+id = "tQF3hWPhv5Kh_ZsGMHqO7"
+uri = "file://artifacts/restaurant-app/assets/images/sushi.png"
+type = "image"
+title = "sushi food photo"
+
+[[generated]]
+id = "dscaaX-gykUu6iT8nlMB5"
+uri = "file://artifacts/restaurant-app/assets/images/shawarma.png"
+type = "image"
+title = "shawarma food photo"
